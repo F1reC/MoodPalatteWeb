@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import DataTable from './components/DataTable';
 import Modal from './components/Modal';
-import { User, Product, Order, Address, Transaction, ServerAddress } from './types';
+import { User, Product, Order, Address, Transaction, ServerAddress, ServerUser } from './types';
 import { fetchProducts } from './api/products';
 import { fetchTransactions } from './api/transactions';
 import { fetchAddresses } from './api/addresses';
+import { fetchUsers } from './api/users';
 
 // Mock data for other entities
 const mockUsers: User[] = [
@@ -54,6 +55,9 @@ function App() {
   const [addresses, setAddresses] = useState<ServerAddress[]>([]);
   const [addressLoading, setAddressLoading] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
+  const [users, setUsers] = useState<ServerUser[]>([]);
+  const [userLoading, setUserLoading] = useState(false);
+  const [userError, setUserError] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -62,6 +66,8 @@ function App() {
       loadTransactions();
     } else if (activeTab === 'addresses') {
       loadAddresses();
+    } else if (activeTab === 'users') {
+      loadUsers();
     }
   }, [activeTab]);
 
@@ -107,17 +113,41 @@ function App() {
     }
   };
 
+  const loadUsers = async () => {
+    setUserLoading(true);
+    setUserError(null);
+    try {
+      const data = await fetchUsers();
+      setUsers(data);
+    } catch (err) {
+      setUserError(err instanceof Error ? err.message : 'Failed to load users');
+      console.error('Error loading users:', err);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
   const getTableConfig = () => {
     switch (activeTab) {
       case 'users':
         return {
-          data: mockUsers,
+          data: users,
           columns: [
-            { key: 'name', label: 'Name' },
+            { key: 'username', label: 'Name' },
             { key: 'email', label: 'Email' },
-            { key: 'role', label: 'Role' },
-            { key: 'createdAt', label: 'Created At' },
+            { 
+              key: 'role', 
+              label: 'Role',
+              render: () => 'user'
+            },
+            { 
+              key: 'gender', 
+              label: 'Gender',
+              render: (value: string) => value || 'N/A'
+            }
           ],
+          loading: userLoading,
+          error: userError,
         };
       case 'products':
         return {

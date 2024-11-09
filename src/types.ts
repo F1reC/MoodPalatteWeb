@@ -72,3 +72,17 @@ export interface ServerAddress {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ServerUser {
+  userId: number;
+  username: string;
+  email: string;
+  gender: string;
+  status: string;
+}
+
+export interface UserResponse {
+  code: number;
+  message: string;
+  data: ServerUser[];
+}
