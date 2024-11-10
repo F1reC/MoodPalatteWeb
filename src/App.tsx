@@ -7,6 +7,8 @@ import { fetchProducts } from './api/products';
 import { fetchTransactions } from './api/transactions';
 import { fetchAddresses } from './api/addresses';
 import { fetchUsers } from './api/users';
+import ProductForm from './components/ProductForm';
+import { addProduct } from './api/products';
 
 // Mock data for other entities
 const mockUsers: User[] = [
@@ -250,13 +252,23 @@ function App() {
     setIsModalOpen(true);
   };
 
+  const handleSubmit = async (formData: FormData) => {
+    try {
+      await addProduct(formData);
+      setIsModalOpen(false);
+      loadProducts(); // 重新加载商品列表
+    } catch (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    }
+  };
+
   const handleEdit = (item: any) => {
     setModalMode('edit');
     setIsModalOpen(true);
   };
 
   const handleDelete = (item: any) => {
-    // Implement delete logic
     console.log('Delete', item);
   };
 
@@ -290,25 +302,14 @@ function App() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={`${modalMode === 'add' ? 'Add' : 'Edit'} ${activeTab.slice(0, -1)}`}
+        title={`${modalMode === 'add' ? '添加' : '编辑'}${activeTab.slice(0, -1)}`}
       >
-        <form className="space-y-4">
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Save
-            </button>
-          </div>
-        </form>
+        {activeTab === 'products' && modalMode === 'add' && (
+          <ProductForm
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+          />
+        )}
       </Modal>
     </div>
   );

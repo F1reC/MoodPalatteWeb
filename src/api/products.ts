@@ -27,3 +27,28 @@ export async function fetchProducts() {
     throw new Error('Failed to fetch products: Unknown error');
   }
 }
+
+export async function addProduct(formData: FormData) {
+  try {
+    const response = await fetch(`${API_URL}/products/add`, {
+      method: 'POST',
+      headers: {
+        'Authorization': AUTH_TOKEN,
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding product:', error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to add product: ${error.message}`);
+    }
+    throw new Error('Failed to add product: Unknown error');
+  }
+}
