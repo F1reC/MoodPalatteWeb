@@ -52,3 +52,52 @@ export async function addProduct(formData: FormData) {
     throw new Error('Failed to add product: Unknown error');
   }
 }
+
+export async function updateProduct(formData: FormData) {
+  try {
+    const response = await fetch(`${API_URL}/products/update`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': AUTH_TOKEN,
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating product:', error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to update product: ${error.message}`);
+    }
+    throw new Error('Failed to update product: Unknown error');
+  }
+}
+
+export async function deleteProduct(productId: number) {
+  try {
+    const response = await fetch(`${API_URL}/products/delete?productId=${productId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': AUTH_TOKEN,
+      },
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to delete product: ${error.message}`);
+    }
+    throw new Error('Failed to delete product: Unknown error');
+  }
+}

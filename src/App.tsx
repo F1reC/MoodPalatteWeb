@@ -9,6 +9,8 @@ import { fetchAddresses } from './api/addresses';
 import { fetchUsers } from './api/users';
 import ProductForm from './components/ProductForm';
 import { addProduct } from './api/products';
+import { updateProduct } from './api/products';
+import { deleteProduct } from './api/products';
 
 // Mock data for other entities
 const mockUsers: User[] = [
@@ -60,6 +62,7 @@ function App() {
   const [users, setUsers] = useState<ServerUser[]>([]);
   const [userLoading, setUserLoading] = useState(false);
   const [userError, setUserError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -263,17 +266,36 @@ function App() {
     }
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: Product) => {
+    setSelectedProduct(item);
     setModalMode('edit');
     setIsModalOpen(true);
   };
 
-  const handleDelete = (item: any) => {
-    console.log('Delete', item);
+  const handleDelete = async (item: Product) => {
+    try {
+      await deleteProduct(item.productId);
+      loadProducts(); // 重新加载商品列表
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product');
+    }
   };
 
   const handleRetry = () => {
     loadProducts();
+  };
+
+  const handleUpdate = async (formData: FormData) => {
+    try {
+      await updateProduct(formData);
+      setIsModalOpen(false);
+      setSelectedProduct(null);
+      loadProducts(); // 重新加载商品列表
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
   };
 
   return (
@@ -301,12 +323,17 @@ function App() {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={`${modalMode === 'add' ? '添加' : '编辑'}${activeTab.slice(0, -1)}`}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        title={`${modalMode === 'add' ? 'Add' : 'Edit'} ${activeTab.slice(0, -1)}`}
       >
-        {activeTab === 'products' && modalMode === 'add' && (
+        {activeTab === 'products' && (
           <ProductForm
-            onSubmit={handleSubmit}
+            mode={modalMode}
+            initialData={selectedProduct}
+            onSubmit={modalMode === 'add' ? handleSubmit : handleUpdate}
             onCancel={() => setIsModalOpen(false)}
           />
         )}

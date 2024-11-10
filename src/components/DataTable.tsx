@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Edit, Trash2, Plus, RefreshCw } from 'lucide-react';
 
 interface DataTableProps {
@@ -26,6 +26,69 @@ export default function DataTable({
   loading,
   error,
 }: DataTableProps) {
+  const [confirmDelete, setConfirmDelete] = useState<{ id: number | null, x: number, y: number }>({
+    id: null,
+    x: 0,
+    y: 0
+  });
+
+  const handleDeleteClick = (e: React.MouseEvent, item: any) => {
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setConfirmDelete({
+      id: item.productId,
+      x: rect.x,
+      y: rect.y + window.scrollY
+    });
+  };
+
+  const handleConfirmDelete = (item: any) => {
+    onDelete(item);
+    setConfirmDelete({ id: null, x: 0, y: 0 });
+  };
+
+  const renderActions = (item: any) => (
+    <td className="px-6 py-4 whitespace-nowrap text-right relative">
+      <button
+        onClick={() => onEdit(item)}
+        className="text-blue-600 hover:text-blue-800 mr-3"
+        title="Edit"
+      >
+        <Edit className="h-4 w-4" />
+      </button>
+      <button
+        onClick={(e) => handleDeleteClick(e, item)}
+        className="text-red-600 hover:text-red-800"
+        title="Delete"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+      
+      {confirmDelete.id === item.productId && (
+        <div 
+          className="absolute z-10 bg-white border border-gray-200 rounded-lg shadow-lg p-4 right-0 mt-2"
+          style={{ top: '100%' }}
+        >
+          <p className="text-sm text-gray-600 mb-3">Are you sure you want to delete this item?</p>
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => setConfirmDelete({ id: null, x: 0, y: 0 })}
+              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleConfirmDelete(item)}
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+    </td>
+  );
+
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow p-8">
@@ -92,22 +155,7 @@ export default function DataTable({
                       : item[column.key]}
                   </td>
                 ))}
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <button
-                    onClick={() => onEdit(item)}
-                    className="text-blue-600 hover:text-blue-800 mr-3"
-                    title="Edit"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(item)}
-                    className="text-red-600 hover:text-red-800"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
+                {renderActions(item)}
               </tr>
             ))}
           </tbody>
